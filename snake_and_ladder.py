@@ -3,10 +3,8 @@ import sys
 import random
 import math
 
-# Initialize Pygame
+# ---------------- Pygame Initialization ---------------- #
 pygame.init()
-
-# Screen setup
 WIDTH, HEIGHT = 600, 600
 ROWS, COLS = 10, 10
 SQUARE_SIZE = WIDTH // COLS
@@ -14,34 +12,52 @@ INFO_HEIGHT = 150
 screen = pygame.display.set_mode((WIDTH + 150, HEIGHT + INFO_HEIGHT))
 pygame.display.set_caption("Snake and Ladder")
 
-# Colors
+# Colors and fonts
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (200, 50, 50)
 BLUE = (50, 50, 200)
 GREEN = (50, 200, 50)
-
-# Fonts
 font = pygame.font.Font(None, 36)
 
-# Snakes and ladders mapping
-snakes = {98: 78, 95: 75, 93: 73, 87: 24, 64: 60, 62: 19, 54: 34, 17: 7}
-ladders = {1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100}
+# ---------------- Random Snakes and Ladders ---------------- #
+def generate_snakes_and_ladders(num_snakes=8, num_ladders=9):
+    snake_positions = {}
+    ladder_positions = {}
+    occupied = set()
 
-# Players
+    # Snakes: start > end
+    while len(snake_positions) < num_snakes:
+        start = random.randint(20, 99)
+        end = random.randint(1, start - 1)
+        if start not in occupied and end not in occupied and start != 100 and end != 1:
+            snake_positions[start] = end
+            occupied.add(start)
+            occupied.add(end)
+
+    # Ladders: start < end
+    while len(ladder_positions) < num_ladders:
+        start = random.randint(1, 79)
+        end = random.randint(start + 1, 100)
+        if start not in occupied and end not in occupied and start != 1 and end != 100:
+            ladder_positions[start] = end
+            occupied.add(start)
+            occupied.add(end)
+
+    return snake_positions, ladder_positions
+
+snakes, ladders = generate_snakes_and_ladders()
+
+# ---------------- Players and Dice ---------------- #
 player_positions = [1, 1]
 player_colors = [(200, 50, 50), (50, 50, 200)]
 current_player = 0
-
-# Load dice images
 dice_images = [pygame.image.load(f"dice{i}.png") for i in range(1, 7)]
 for i in range(len(dice_images)):
     dice_images[i] = pygame.transform.scale(dice_images[i], (100, 100))
-
 current_dice = dice_images[0]
 
 # ---------------- Functions ---------------- #
-
 def draw_board():
     num = 100
     for row in range(ROWS):
@@ -64,9 +80,7 @@ def get_coordinates(position):
     return x, y
 
 def draw_arrow_line(start, end, color):
-    # Draw main line
     pygame.draw.line(screen, color, start, end, 5)
-    # Draw arrowhead
     angle = math.atan2(end[1] - start[1], end[0] - start[0])
     arrow_length = 15
     arrow_angle = math.pi / 6
@@ -86,23 +100,14 @@ def draw_snakes_and_ladders():
 def draw_players(exclude_player=None, moving_pos=None):
     for i, pos in enumerate(player_positions):
         if i == exclude_player and moving_pos is None:
-            continue  # skip moving player
-
-        # Use moving_pos directly if provided
+            continue
         if i == exclude_player and moving_pos is not None:
             x, y = moving_pos
         else:
             x, y = get_coordinates(pos)
-
-        # Offset if players share same tile
         if player_positions.count(pos) > 1 and (i != exclude_player or moving_pos is None):
-            if i == 0:
-                x -= 10
-            else:
-                x += 10
-
+            x += -10 if i == 0 else 10
         pygame.draw.circle(screen, player_colors[i], (x, y), 15)
-
 
 def roll_dice_animation():
     global current_dice
@@ -114,26 +119,21 @@ def roll_dice_animation():
     return random.randint(1, 6)
 
 def move_player(player, steps):
-    # Move step by step
     for _ in range(steps):
         if player_positions[player] < 100:
             player_positions[player] += 1
             draw_screen()
             pygame.display.flip()
             pygame.time.delay(200)
-
-    # Handle snakes/ladders
     while player_positions[player] in ladders or player_positions[player] in snakes:
         destination = ladders.get(player_positions[player], snakes.get(player_positions[player]))
         start_pos = get_coordinates(player_positions[player])
         end_pos = get_coordinates(destination)
-
         steps_count = 20
         for i in range(steps_count + 1):
             t = i / steps_count
             x = int(start_pos[0] + (end_pos[0] - start_pos[0]) * t)
             y = int(start_pos[1] + (end_pos[1] - start_pos[1]) * t)
-
             screen.fill(WHITE)
             draw_board()
             draw_snakes_and_ladders()
@@ -141,7 +141,6 @@ def move_player(player, steps):
             draw_dice()
             pygame.display.flip()
             pygame.time.delay(50)
-
         player_positions[player] = destination
 
 def display_message(message):
