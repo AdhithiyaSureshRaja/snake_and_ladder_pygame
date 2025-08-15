@@ -12,7 +12,7 @@ ROWS, COLS = 10, 10
 SQUARE_SIZE = WIDTH // COLS
 INFO_HEIGHT = 150
 screen = pygame.display.set_mode((WIDTH + 150, HEIGHT + INFO_HEIGHT))
-pygame.display.set_caption("Snake and Ladder with Dice")
+pygame.display.set_caption("Snake and Ladder")
 
 # Colors
 WHITE = (255, 255, 255)
