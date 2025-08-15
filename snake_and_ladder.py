@@ -114,13 +114,30 @@ def roll_dice_animation():
     return random.randint(1, 6)
 
 def move_player(player, steps):
-    player_positions[player] += steps
-    if player_positions[player] > 100:
-        player_positions[player] = 100
-    if player_positions[player] in ladders:
-        player_positions[player] = ladders[player_positions[player]]
-    if player_positions[player] in snakes:
-        player_positions[player] = snakes[player_positions[player]]
+    for _ in range(steps):
+        if player_positions[player] < 100:
+            player_positions[player] += 1
+            draw_screen()
+            pygame.display.flip()
+            pygame.time.delay(200)  # Adjust speed (200 ms per tile)
+
+    # If landed on a ladder or snake, animate that too
+    while player_positions[player] in ladders or player_positions[player] in snakes:
+        if player_positions[player] in ladders:
+            destination = ladders[player_positions[player]]
+        else:
+            destination = snakes[player_positions[player]]
+
+        # Animate moving to destination
+        while player_positions[player] != destination:
+            if player_positions[player] < destination:
+                player_positions[player] += 1
+            else:
+                player_positions[player] -= 1
+            draw_screen()
+            pygame.display.flip()
+            pygame.time.delay(200)
+
 
 def display_message(message):
     text = font.render(message, True, BLACK)
